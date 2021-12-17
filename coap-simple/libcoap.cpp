@@ -1,26 +1,4 @@
-#include <arpa/inet.h>
-#include <netinet/in.h>
-#include <stdio.h>
-#include <string.h>
-#include <sys/socket.h>
-#include <unistd.h>
-
-#define BUFF_SIZE 1024
-#define SECRET "aaaaaaaaa"
-#define TICKET_SIZE 10
-#define DATA_SIZE 20
-#define IP_SIZE 15
-
-struct CoapPacket {
-  /* data */
-};
-
-struct Message {
-  char payload[DATA_SIZE];
-  char ip[IP_SIZE];
-  int port;
-  char ticket[TICKET_SIZE];
-};
+#include "libcoap.h"
 
 int listenCoapPacketStart(char *ip, int port) {
   int sock = socket(AF_INET, SOCK_DGRAM, 0);
@@ -53,19 +31,28 @@ int sendCoapPacket(char *payload, char *ip, int port, char *ticket) {
 };
 
 Message recvCoapPacket(int sock) {
-  printf("recv packet");
+  // 変数宣言
   char buf[BUFF_SIZE];
   struct sockaddr_in from;
   socklen_t addrlen;
   addrlen = sizeof(from);
+  memset(buf, 0, sizeof(buf));
+
+  // パケット受け取り
   recvfrom(sock, buf, sizeof(buf), 0, (struct sockaddr *)&from, &addrlen);
-  char *payload;
-  payload = buf;  // TODO: ペイロードを取り出す
+
+  // ペイロードの取り出し
+  char payload[BUFF_SIZE];
+  strcpy(payload, buf);  // TODO: ペイロードを取り出す処理を書く
 
   // 送信元の情報を取り出す
   char ip[15];
   inet_ntop(AF_INET, &from.sin_addr, ip, sizeof(ip));
-  struct Message msg = {*payload, *ip, ntohs(from.sin_port)};
+
+  // Messageオブジェクトを作成
+  struct Message msg = {"", *ip, ntohs(from.sin_port)};
+  strcpy(msg.payload, payload);
+
   return msg;
 };
 

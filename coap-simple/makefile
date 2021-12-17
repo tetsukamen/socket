@@ -1,8 +1,5 @@
 server: server.cpp
-	gcc server.cpp -o server.exe
+	gcc server.cpp libcoap.cpp -o server.o
 
 client: client.cpp
-	gcc client.cpp -o client.exe
-
-libcoap: libcoap.cpp
-	gcc libcoap.cpp -o libcoap.exe
+	gcc client.cpp libcoap.cpp -o client.o
