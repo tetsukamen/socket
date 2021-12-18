@@ -4,30 +4,36 @@
 #define SERVER_PORT 8080
 
 int main() {
-  // start listen
-  int recv_sock = listenCoapPacketStart(SERVER_IP, SERVER_PORT);
+  // variables declaration
   struct Message msg;
-  char *ticket;
-  char data[DATA_SIZE];
+  char ticket[BUFF_SIZE];
+  char data[BUFF_SIZE];
 
-  printf("server started\n");
+  // start listen
+  int sock = listenCoapPacketStart(SERVER_IP, SERVER_PORT);
+  printf("Listenting...\n");
 
   while (1) {
     // receve packet
-    msg = recvCoapPacket(recv_sock);
-    printf("%s\n", msg.payload);
-    // if (msg.payload == "ticketRequest") {  // send ticket
-    //   ticket = generateTicket(msg.ip);
-    //   printf("ticket needed\n");
-    //   sendCoapPacket(ticket, msg.ip, msg.port, "");
-    // } else {  // send response
-    //   int isValid = validateTicket(msg.ticket, msg.ip);
-    //   if (isValid) {
-    //     printf("request is valid");
-    //     sendCoapPacket(data, msg.ip, msg.port, "");
-    //   }
-    // }
+    msg = recvCoapPacket(sock);
+    printf("receve: %s\n", msg.payload);
+    if (strcmp(msg.payload, "ticketRequest") == 0) {
+      // send ticket
+      strcpy(ticket, generateTicket(msg.ip));
+      printf("Ticket has issued\n");
+      sendCoapPacket(sock, ticket, msg.ip, msg.port, "");
+    } else {
+      // send response
+      int isValid = validateTicket(msg.payload, msg.ip);
+      if (isValid) {
+        printf("request is valid\n");
+        strcpy(data, "sensor-data-000112345\n");
+        sendCoapPacket(sock, data, msg.ip, msg.port, "");
+      } else {
+        printf("ticket is invalid\n");
+      }
+    }
   }
-  listenCoapPacketEnd(recv_sock);
+  listenCoapPacketEnd(sock);
   return 0;
 }

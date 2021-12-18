@@ -1,4 +1,5 @@
 #include <arpa/inet.h>
+#include <errno.h>
 #include <netinet/in.h>
 #include <stdio.h>
 #include <string.h>
@@ -8,7 +9,6 @@
 #define BUFF_SIZE 1024
 #define SECRET "aaaaaaaaa"
 #define TICKET_SIZE 10
-#define DATA_SIZE 20
 #define IP_SIZE 15
 
 struct CoapPacket {
@@ -24,7 +24,8 @@ struct Message {
 
 int listenCoapPacketStart(char *ip, int port);
 void listenCoapPacketEnd(int sock);
-int sendCoapPacket(char *payload, char *ip, int port, char *ticket);
+int sendCoapPacket(int sock, char *payload, char *dist_ip, int dist_port,
+                   char *ticket);
 Message recvCoapPacket(int sock);
 char *SHA(char *ip, char *secret);
 char *generateTicket(char *ip);

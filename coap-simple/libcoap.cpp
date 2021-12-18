@@ -12,21 +12,21 @@ int listenCoapPacketStart(char *ip, int port) {
 
 void listenCoapPacketEnd(int sock) { close(sock); };
 
-int sendCoapPacket(char *payload, char *ip, int port, char *ticket) {
-  printf("send packet");
-  // create socket
-  int sock = socket(AF_INET, SOCK_DGRAM, 0);
-  // sed addr
-  struct sockaddr_in addr;
-  addr.sin_family = AF_INET;
-  addr.sin_port = addr.sin_addr.s_addr = inet_addr(ip);
-  addr.sin_port = htons(port);
+int sendCoapPacket(int sock, char *payload, char *dist_ip, int dist_port,
+                   char *ticket) {
+  // dist addr
+  struct sockaddr_in dist_addr;
+  memset(&dist_addr, 0, sizeof(dist_addr));
+  dist_addr.sin_family = AF_INET;
+  dist_addr.sin_addr.s_addr = inet_addr(dist_ip);
+  dist_addr.sin_port = htons(dist_port);
   // create coap packet
-  char packet[DATA_SIZE] = "00000000";
-  // TODO: packet作成コードの実装
+  char packet[BUFF_SIZE];
+  strcpy(packet, payload);  // TODO: packet作成コードの実装
+
   // send
-  int ret = sendto(sock, packet, sizeof(packet), 0, (struct sockaddr *)&addr,
-                   sizeof(addr));
+  int ret = sendto(sock, packet, sizeof(packet), 0,
+                   (struct sockaddr *)&dist_addr, sizeof(dist_addr));
   return ret;
 };
 
@@ -50,7 +50,9 @@ Message recvCoapPacket(int sock) {
   inet_ntop(AF_INET, &from.sin_addr, ip, sizeof(ip));
 
   // Messageオブジェクトを作成
-  struct Message msg = {"", *ip, ntohs(from.sin_port)};
+  struct Message msg;
+  msg.port = ntohs(from.sin_port);
+  strcpy(msg.ip, ip);
   strcpy(msg.payload, payload);
 
   return msg;
@@ -69,7 +71,7 @@ char *generateTicket(char *ip) {
 
 int validateTicket(char *ticket, char *ip) {
   char *valid = SHA(ip, SECRET);
-  if (valid == ticket) {
+  if (strcmp(valid, ticket) == 0) {
     return 1;
   } else {
     return 0;
