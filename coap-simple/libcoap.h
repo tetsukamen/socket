@@ -6,17 +6,20 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
-#define BUFF_SIZE 1024
+#define BUFF_SIZE 128
 #define SECRET "aaaaaaaaa"
 #define TICKET_SIZE 10
 #define IP_SIZE 15
+#define COAP_BUF_MAX_SIZE 128
+#define COAP_HEADER_SIZE 4
+#define COAP_TOKEN_SIZE 1
 
 struct CoapPacket {
   /* data */
 };
 
 struct Message {
-  char payload[BUFF_SIZE];
+  uint8_t payload[BUFF_SIZE] = {0};
   char ip[IP_SIZE];
   int port;
   char ticket[TICKET_SIZE];
@@ -24,8 +27,8 @@ struct Message {
 
 int listenCoapPacketStart(char *ip, int port);
 void listenCoapPacketEnd(int sock);
-int sendCoapPacket(int sock, char *payload, char *dist_ip, int dist_port,
-                   char *ticket);
+int sendCoapPacket(int sock, char *payload, int payload_size, char *dist_ip,
+                   int dist_port, char *ticket);
 Message recvCoapPacket(int sock);
 char *SHA(char *ip, char *secret);
 char *generateTicket(char *ip);

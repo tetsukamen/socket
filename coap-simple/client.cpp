@@ -15,19 +15,22 @@ int main() {
 
   // get ticket
   errno = 0;
-  sendCoapPacket(sock, "ticketRequest", SERVER_IP, SERVER_PORT, "");
+  sendCoapPacket(sock, "ticketRequest\n", sizeof("ticketRequest\n"), SERVER_IP,
+                 SERVER_PORT, "");
   printf("send ticket request\n");
-  msg = recvCoapPacket(sock);
-  strcpy(ticket, msg.payload);
-  printf("receve ticket: %s\n", ticket);
+  // msg = recvCoapPacket(sock);
+  // strcpy(ticket, msg.payload);
+  // printf("receve ticket: %s\n", ticket);
 
   // get data request 3 times
-  for (int i = 0; i < 3; i++) {
-    printf("send request\n");
-    sendCoapPacket(sock, ticket, SERVER_IP, SERVER_PORT, ticket);
-    msg = recvCoapPacket(sock);
-    printf("receve packet: %s\n", msg.payload);
-  }
+  // for (int i = 0; i < 3; i++) {
+  //   printf("send request\n");
+  //   sendCoapPacket(sock, ticket, sizeof("send request"), SERVER_IP,
+  //   SERVER_PORT,
+  //                  ticket);
+  //   msg = recvCoapPacket(sock);
+  //   printf("receve packet: %s\n", msg.payload);
+  // }
   // end listen
   listenCoapPacketEnd(sock);
   return 0;

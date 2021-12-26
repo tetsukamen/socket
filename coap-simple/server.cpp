@@ -8,6 +8,7 @@ int main() {
   struct Message msg;
   char ticket[BUFF_SIZE];
   char data[BUFF_SIZE];
+  char payload[BUFF_SIZE] = {0};
 
   // start listen
   int sock = listenCoapPacketStart(SERVER_IP, SERVER_PORT);
@@ -17,22 +18,32 @@ int main() {
     // receve packet
     msg = recvCoapPacket(sock);
     printf("receve: %s\n", msg.payload);
-    if (strcmp(msg.payload, "ticketRequest") == 0) {
-      // send ticket
-      strcpy(ticket, generateTicket(msg.ip));
-      printf("Ticket has issued\n");
-      sendCoapPacket(sock, ticket, msg.ip, msg.port, "");
-    } else {
-      // send response
-      int isValid = validateTicket(msg.payload, msg.ip);
-      if (isValid) {
-        printf("request is valid\n");
-        strcpy(data, "sensor-data-000112345\n");
-        sendCoapPacket(sock, data, msg.ip, msg.port, "");
-      } else {
-        printf("ticket is invalid\n");
-      }
+    for (int i = 0; i < sizeof(msg.payload); i++) {
+      payload[i] = (char)msg.payload[i];
     }
+
+    for (int i = 0; i < sizeof(payload); i++) {
+      printf("%#x ", payload[i]);
+    }
+    printf("\n");
+
+    // if (strcmp(payload, "ticketRequest") == 0) {
+    //   // send ticket
+    //   strcpy(ticket, generateTicket(msg.ip));
+    //   printf("Ticket has issued\n");
+    //   sendCoapPacket(sock, ticket, 9, msg.ip, msg.port, "");
+    // } else {
+    //   printf("Got ticket\n");
+    //   // send response
+    //   int isValid = validateTicket(payload, msg.ip);
+    //   if (isValid) {
+    //     printf("request is valid\n");
+    //     strcpy(data, "sensor-data-000112345\n");
+    //     sendCoapPacket(sock, data, 21, msg.ip, msg.port, "");
+    //   } else {
+    //     printf("ticket is invalid\n");
+    //   }
+    // }
   }
   listenCoapPacketEnd(sock);
   return 0;
