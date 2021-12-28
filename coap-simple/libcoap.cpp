@@ -41,6 +41,12 @@ int sendCoapPacket(int sock, char *payload, int payload_size, char *dist_ip,
   p += COAP_TOKEN_SIZE;
   packetSize += COAP_TOKEN_SIZE;
 
+  // Make option
+  *p = 0x01 << 4;  // set option delta 0001
+  *p++ |= 0x01;    // set option length 0001
+  *p++ = 0x01;     // set option value
+  packetSize += 2;
+
   // Payload marker
   *p++ = 0xFF;
   packetSize++;
@@ -54,18 +60,18 @@ int sendCoapPacket(int sock, char *payload, int payload_size, char *dist_ip,
   packetSize++;
 
 // デバッグ
-#if 0
-// Print packet
-// printf("%d\n", packetSize);
-// for (int j = 0; j < packetSize; j++) {
-//   printf("%c    ", packet[j]);
-// }
-// printf("\n");
+#if 1
+  // Print packet
+  printf("%d\n", packetSize);
+  for (int j = 0; j < packetSize; j++) {
+    printf("%c    ", packet[j]);
+  }
+  printf("\n");
 
-// for (int i = 0; i < packetSize; i++) {
-//   printf("%#x ", packet[i]);
-// }
-// printf("\n");
+  for (int i = 0; i < packetSize; i++) {
+    printf("%#x ", packet[i]);
+  }
+  printf("\n");
 #endif
 
   // send
@@ -94,16 +100,17 @@ Message recvCoapPacket(int sock) {
   }
   payload[k] = 0xa;
 
-#if 0
-// for (int j = 0; j < sizeof(payload); j++) {
-//   printf("%c    ", payload[j]);
-// }
-// printf("\n");
+// print
+#if 1
+  for (int j = 0; j < sizeof(payload); j++) {
+    printf("%c    ", payload[j]);
+  }
+  printf("\n");
 
-// for (int j = 0; j < sizeof(payload); j++) {
-//   printf("%#x ", payload[j]);
-// }
-// printf("\n");
+  for (int j = 0; j < sizeof(payload); j++) {
+    printf("%#x ", payload[j]);
+  }
+  printf("\n");
 #endif
 
   // CoAPパケットのパース
