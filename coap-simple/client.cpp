@@ -14,8 +14,8 @@ int main()
   // start listen
   int sock = listenCoapPacketStart(CLIENT_IP, CLIENT_PORT);
 
+  printf("---------------------------------------------\n");
   // get ticket
-  errno = 0;
   sendCoapPacket(sock, "ticketRequest\n", sizeof("ticketRequest\n"), SERVER_IP,
                  SERVER_PORT, 0x1);
   printf("send ticket request\n");
@@ -25,12 +25,13 @@ int main()
 
   // get data request 3 times
   // for (int i = 0; i < 3; i++) {
-  //   printf("send request\n");
-  //   sendCoapPacket(sock, ticket, sizeof("send request"), SERVER_IP,
-  //   SERVER_PORT,
-  //                  ticket);
-  //   msg = recvCoapPacket(sock);
-  //   printf("receve packet: %s\n", msg.payload);
+  printf("---------------------------------------------\n");
+  printf("send request\n");
+  sendCoapPacket(sock, "GET /data", sizeof("GET /data"), SERVER_IP,
+                 SERVER_PORT,
+                 ticket);
+  msg = recvCoapPacket(sock);
+  printf("receve packet: %s\n", msg.payload);
   // }
   // end listen
   listenCoapPacketEnd(sock);

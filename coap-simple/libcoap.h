@@ -13,7 +13,7 @@
 #define COAP_BUF_MAX_SIZE 128
 #define COAP_HEADER_SIZE 4
 #define COAP_TOKEN_SIZE 1
-#define OPTION_LENGTH 1
+#define OPTION_LENGTH 2
 
 struct CoapPacket
 {
@@ -29,6 +29,13 @@ struct CoapOption
 
 struct Message
 {
+  int version;
+  int type;
+  int tokenLength;
+  int code;
+  uint8_t messageIdUpper;
+  uint8_t messageIdLower;
+  uint8_t token;
   uint8_t payload[BUFF_SIZE] = {0};
   char ip[IP_SIZE];
   int port;

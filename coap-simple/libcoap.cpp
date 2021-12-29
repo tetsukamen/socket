@@ -42,10 +42,16 @@ int sendCoapPacket(int sock, char *payload, int payload_size, char *dist_ip,
   p += COAP_TOKEN_SIZE;
   packetSize += COAP_TOKEN_SIZE;
 
-  // Make option
+  // Make ticket option
   *p = 0x01 << 4; // set option delta 0001
   *p++ |= 0x01;   // set option length 0001
   *p++ = ticket;  // set option value
+  packetSize += 2;
+
+  // Make dummy option
+  *p = 0x01 << 4; // set option delta 0001
+  *p++ |= 0x01;   // set option length 0001
+  *p++ = 0xFC;    // set option value
   packetSize += 2;
 
   // Payload marker
@@ -123,22 +129,26 @@ Message recvCoapPacket(int sock)
 
   // CoAPパケットのパース
   // CoAP Version
+  msg.version = (int)(*p & 0xC0) >> 6;
   // Type
+  msg.type = (int)(*p & 0x30) >> 4;
   // Token
+  msg.tokenLength = (int)*p++ & 0x0F;
   // Code
+  msg.code = (int)*p++ & 0xFF;
   // message id
-
-  // Version~messageIdまでスキップ
-  p += 5;
+  msg.messageIdUpper = *p++;
+  msg.messageIdLower = *p++;
+  // token
+  msg.token = *p++;
 
   // parse option
-  uint8_t delta = *p;
-  msg.options[0].delta = (int)((0xf0 & delta) >> 4);
-  uint8_t length = *p;
-  msg.options[0].length = (int)(0x0f & length);
-  p++;
-  msg.options[0].value = *p;
-  p++;
+  for (int i = 0; i < OPTION_LENGTH; i++)
+  {
+    msg.options[i].delta = (int)((0xf0 & *p) >> 4);
+    msg.options[i].length = (int)(0x0f & *p++);
+    msg.options[i].value = *p++;
+  }
 
   // ヘッダをスキップ
   while (*p != 0xff)

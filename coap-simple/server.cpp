@@ -20,8 +20,13 @@ int main()
     // receve packet
     msg = recvCoapPacket(sock);
     ticket = msg.options[0].value;
+    printf("---------------------------------------------\n");
     printf("receve: %s\n", msg.payload);
-    printf("option: delta:%d length:%d value:%#x\n", msg.options[0].delta, msg.options[0].length, msg.options[0].value);
+    printf("ver:%d type:%d TKL:%d code:%d token:%#x\n", msg.version, msg.type, msg.tokenLength, msg.code, msg.token);
+    for (int i = 0; i < OPTION_LENGTH; i++)
+    {
+      printf("option No.%d: delta:%d length:%d value:%#x\n", i, msg.options[i].delta, msg.options[i].length, msg.options[i].value);
+    }
 
 // payloadを16進数で表示
 #if 0
@@ -40,16 +45,21 @@ int main()
     }
     else
     {
-      //   printf("Got ticket\n");
-      //   // send response
-      //   int isValid = validateTicket(payload, msg.ip);
-      //   if (isValid) {
-      //     printf("request is valid\n");
-      //     strcpy(data, "sensor-data-000112345\n");
-      //     sendCoapPacket(sock, data, 21, msg.ip, msg.port, "");
-      //   } else {
-      //     printf("ticket is invalid\n");
-      //   }
+      printf("Got ticket\n");
+      // send response
+      int isValid = validateTicket(ticket, msg.ip);
+      if (isValid == 0)
+      {
+        printf("request is valid\n");
+        strcpy(data, "sensor-data-000112345\n");
+
+        int ret = sendCoapPacket(sock, data, sizeof(data), msg.ip, msg.port);
+        printf("%d\n", ret);
+      }
+      else
+      {
+        printf("ticket is invalid\n");
+      }
     }
   }
   listenCoapPacketEnd(sock);
