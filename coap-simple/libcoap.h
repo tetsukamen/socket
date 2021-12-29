@@ -13,16 +13,27 @@
 #define COAP_BUF_MAX_SIZE 128
 #define COAP_HEADER_SIZE 4
 #define COAP_TOKEN_SIZE 1
+#define OPTION_LENGTH 1
 
-struct CoapPacket {
+struct CoapPacket
+{
   /* data */
 };
 
-struct Message {
+struct CoapOption
+{
+  int delta;
+  int length;
+  uint8_t value;
+};
+
+struct Message
+{
   uint8_t payload[BUFF_SIZE] = {0};
   char ip[IP_SIZE];
   int port;
   char ticket[TICKET_SIZE];
+  CoapOption options[OPTION_LENGTH];
 };
 
 int listenCoapPacketStart(char *ip, int port);

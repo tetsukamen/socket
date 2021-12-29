@@ -3,7 +3,8 @@
 #define SERVER_IP "127.0.0.1"
 #define SERVER_PORT 8080
 
-int main() {
+int main()
+{
   // variables declaration
   struct Message msg;
   char ticket[BUFF_SIZE];
@@ -14,17 +15,16 @@ int main() {
   int sock = listenCoapPacketStart(SERVER_IP, SERVER_PORT);
   printf("Listenting...\n");
 
-  while (1) {
+  while (1)
+  {
     // receve packet
     msg = recvCoapPacket(sock);
     printf("receve: %s\n", msg.payload);
-    for (int i = 0; i < sizeof(msg.payload); i++) {
-      payload[i] = (char)msg.payload[i];
-    }
+    printf("option: delta:%d length:%d value:%#x\n", msg.options[0].delta, msg.options[0].length, msg.options[0].value);
 
-    for (int i = 0; i < sizeof(payload); i++) {
-      printf("%#x ", payload[i]);
-    }
+    // for (int i = 0; i < sizeof(payload); i++) {
+    //   printf("%#x ", payload[i]);
+    // }
     printf("\n");
 
     // if (strcmp(payload, "ticketRequest") == 0) {
