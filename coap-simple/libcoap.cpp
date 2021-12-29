@@ -14,7 +14,7 @@ int listenCoapPacketStart(char *ip, int port)
 void listenCoapPacketEnd(int sock) { close(sock); };
 
 int sendCoapPacket(int sock, char *payload, int payload_size, char *dist_ip,
-                   int dist_port, char *ticket)
+                   int dist_port, uint8_t ticket)
 {
   // dist addr
   struct sockaddr_in dist_addr;
@@ -45,7 +45,7 @@ int sendCoapPacket(int sock, char *payload, int payload_size, char *dist_ip,
   // Make option
   *p = 0x01 << 4; // set option delta 0001
   *p++ |= 0x01;   // set option length 0001
-  *p++ = 0x01;    // set option value
+  *p++ = ticket;  // set option value
   packetSize += 2;
 
   // Payload marker
@@ -57,11 +57,8 @@ int sendCoapPacket(int sock, char *payload, int payload_size, char *dist_ip,
   p += payload_size;
   packetSize += payload_size;
 
-  *p = NULL;
-  packetSize++;
-
 // 16進数で表示
-#if 1
+#if 0
   for (int i = 0; i < packetSize; i++)
   {
     printf("%#x ", packet[i]);
@@ -108,7 +105,7 @@ Message recvCoapPacket(int sock)
   payload[k] = 0xa;
 
 // 16進数で表示
-#if 1
+#if 0
   for (int j = 0; j < sizeof(payload); j++)
   {
     printf("%#x ", payload[j]);
@@ -169,28 +166,28 @@ Message recvCoapPacket(int sock)
   return msg;
 };
 
-char *SHA(char *ip, char *secret)
+uint8_t SHA(char *ip, char *secret)
 {
-  char *hash = "bbbbbbbbb";
+  uint8_t hash = 0xf0;
   return hash;
 }
 
-char *generateTicket(char *ip)
+uint8_t generateTicket(char *ip)
 {
-  char *ticket;
+  uint8_t ticket;
   ticket = SHA(ip, SECRET);
   return ticket;
 };
 
-int validateTicket(char *ticket, char *ip)
+int validateTicket(uint8_t ticket, char *ip)
 {
-  char *valid = SHA(ip, SECRET);
-  if (strcmp(valid, ticket) == 0)
+  uint8_t valid = SHA(ip, SECRET);
+  if (valid == ticket)
   {
-    return 1;
+    return 0;
   }
   else
   {
-    return 0;
+    return -1;
   }
 };

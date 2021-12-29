@@ -5,10 +5,11 @@
 #define CLIENT_IP "127.0.0.1"
 #define CLIENT_PORT 8081
 
-int main() {
+int main()
+{
   // variables declaration
   struct Message msg;
-  char ticket[BUFF_SIZE];
+  uint8_t ticket;
 
   // start listen
   int sock = listenCoapPacketStart(CLIENT_IP, CLIENT_PORT);
@@ -16,11 +17,11 @@ int main() {
   // get ticket
   errno = 0;
   sendCoapPacket(sock, "ticketRequest\n", sizeof("ticketRequest\n"), SERVER_IP,
-                 SERVER_PORT, "");
+                 SERVER_PORT, 0x1);
   printf("send ticket request\n");
-  // msg = recvCoapPacket(sock);
-  // strcpy(ticket, msg.payload);
-  // printf("receve ticket: %s\n", ticket);
+  msg = recvCoapPacket(sock);
+  ticket = msg.options[0].value;
+  printf("receve ticket: %#x\n", ticket);
 
   // get data request 3 times
   // for (int i = 0; i < 3; i++) {

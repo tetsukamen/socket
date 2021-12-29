@@ -21,3 +21,10 @@ option(delta=0001 length=0001 value=00000001)
 0xff
 11111111
 marker
+
+
+## 仕様
+### ticket option
+チケットを要求するとき　value=0x1
+チケットを贈るとき value=xxxx
+それ以外の時 value=0

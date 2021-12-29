@@ -39,8 +39,8 @@ struct Message
 int listenCoapPacketStart(char *ip, int port);
 void listenCoapPacketEnd(int sock);
 int sendCoapPacket(int sock, char *payload, int payload_size, char *dist_ip,
-                   int dist_port, char *ticket);
+                   int dist_port, uint8_t ticket = 0);
 Message recvCoapPacket(int sock);
-char *SHA(char *ip, char *secret);
-char *generateTicket(char *ip);
-int validateTicket(char *ticket, char *ip);
+uint8_t SHA(char *ip, char *secret);
+uint8_t generateTicket(char *ip);
+int validateTicket(uint8_t ticket, char *ip);
