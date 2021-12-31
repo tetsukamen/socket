@@ -3,3 +3,6 @@ server: server.cpp
 
 client: client.cpp
 	gcc -w client.cpp libcoap.cpp -o client.o
+
+test: test.cpp
+	gcc test.cpp -o test.o
