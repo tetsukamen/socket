@@ -8,8 +8,9 @@ int main()
   // variables declaration
   struct Message msg;
   uint8_t ticket;
-  char data[BUFF_SIZE];
+  char data[BUFF_SIZE] = {0};
   char payload[BUFF_SIZE] = {0};
+  size_t data_size;
 
   // start listen
   int sock = listenCoapPacketStart(SERVER_IP, SERVER_PORT);
@@ -21,12 +22,13 @@ int main()
     msg = recvCoapPacket(sock);
     ticket = msg.options[0].value;
     printf("---------------------------------------------\n");
-    printf("receve: %s\n", msg.payload);
+    printf("receve: '%s' from %s %d\n", msg.payload, msg.ip, msg.port);
     printf("ver:%d type:%d TKL:%d code:%d token:%#x\n", msg.version, msg.type, msg.tokenLength, msg.code, msg.token);
     for (int i = 0; i < OPTION_LENGTH; i++)
     {
       printf("option No.%d: delta:%d length:%d value:%#x\n", i, msg.options[i].delta, msg.options[i].length, msg.options[i].value);
     }
+    printf("\n");
 
 // payloadを16進数で表示
 #if 0
@@ -41,7 +43,7 @@ int main()
       // send ticket
       ticket = generateTicket(msg.ip);
       printf("Ticket has issued\n");
-      sendCoapPacket(sock, "Ticket has issued", sizeof("Ticket has issued"), msg.ip, msg.port, ticket);
+      sendCoapPacket(sock, "Ticket has issued\n", sizeof("Ticket has issued\n"), msg.ip, msg.port, ticket);
     }
     else
     {
@@ -52,15 +54,16 @@ int main()
       {
         printf("request is valid\n");
         strcpy(data, "sensor-data-000112345\n");
+        data_size = sizeof("sensor-data-000112345\n");
 
-        int ret = sendCoapPacket(sock, data, sizeof(data), msg.ip, msg.port);
-        printf("%d\n", ret);
+        sendCoapPacket(sock, data, data_size, msg.ip, msg.port);
       }
       else
       {
         printf("ticket is invalid\n");
       }
     }
+    printf("\n");
   }
   listenCoapPacketEnd(sock);
   return 0;
