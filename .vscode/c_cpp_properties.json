@@ -4,7 +4,8 @@
             "name": "Mac",
             "includePath": [
                 "${workspaceFolder}/**",
-                "${workspaceFolder}/coap-simple/include"
+                "${workspaceFolder}/coap-simple/include",
+                "/usr/local/include"
             ],
             "defines": [],
             "macFrameworkPath": [
