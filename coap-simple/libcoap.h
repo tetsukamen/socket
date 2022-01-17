@@ -6,6 +6,8 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
+#include "SHA256.h"
+
 #define BUFF_SIZE 128
 #define SECRET "aaaaaaaaa"
 #define TICKET_SIZE 10
@@ -15,20 +17,17 @@
 #define COAP_TOKEN_SIZE 1
 #define OPTION_LENGTH 2
 
-struct CoapPacket
-{
+struct CoapPacket {
   /* data */
 };
 
-struct CoapOption
-{
+struct CoapOption {
   int delta;
   int length;
-  uint8_t value;
+  uint64_t value;
 };
 
-struct Message
-{
+struct Message {
   int version;
   int type;
   int tokenLength;
@@ -46,8 +45,8 @@ struct Message
 int listenCoapPacketStart(char *ip, int port);
 void listenCoapPacketEnd(int sock);
 int sendCoapPacket(int sock, char *payload, int payload_size, char *dist_ip,
-                   int dist_port, uint8_t ticket = 0);
+                   int dist_port, uint64_t ticket = 0);
 Message recvCoapPacket(int sock);
-uint8_t SHA(char *ip, char *secret);
-uint8_t generateTicket(char *ip);
-int validateTicket(uint8_t ticket, char *ip);
+uint64_t SHA(char *ip, char *secret);
+uint64_t generateTicket(char *ip);
+int validateTicket(uint64_t ticket, char *ip);

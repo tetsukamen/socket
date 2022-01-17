@@ -1,7 +1,6 @@
 #include "libcoap.h"
 
-int listenCoapPacketStart(char *ip, int port)
-{
+int listenCoapPacketStart(char *ip, int port) {
   int sock = socket(AF_INET, SOCK_DGRAM, 0);
   struct sockaddr_in addr;
   addr.sin_family = AF_INET;
@@ -14,8 +13,7 @@ int listenCoapPacketStart(char *ip, int port)
 void listenCoapPacketEnd(int sock) { close(sock); };
 
 int sendCoapPacket(int sock, char *payload, int payload_size, char *dist_ip,
-                   int dist_port, uint8_t ticket)
-{
+                   int dist_port, uint64_t ticket) {
   // dist addr
   struct sockaddr_in dist_addr;
   memset(&dist_addr, 0, sizeof(dist_addr));
@@ -28,30 +26,32 @@ int sendCoapPacket(int sock, char *payload, int payload_size, char *dist_ip,
   uint16_t packetSize = 0;
   uint8_t token[COAP_TOKEN_SIZE];
   // Coap header
-  *p = 0x01 << 6;                 // Coap Version
-  *p |= 0x01 << 4;                // Type
-  *p++ |= COAP_TOKEN_SIZE & 0x0F; // Token Length: 1 byte
-  *p++ = 1;                       // Code: 00000001(定義されてない適当な値)
-  *p++ = 0;                       // message id upper
-  *p++ = 1;                       // message id lower (全体で00000000 00000001)
+  *p = 0x01 << 6;                  // Coap Version
+  *p |= 0x01 << 4;                 // Type
+  *p++ |= COAP_TOKEN_SIZE & 0x0F;  // Token Length: 1 byte
+  *p++ = 1;  // Code: 00000001(定義されてない適当な値)
+  *p++ = 0;  // message id upper
+  *p++ = 1;  // message id lower (全体で00000000 00000001)
   packetSize += COAP_HEADER_SIZE;
 
   // Coap token
-  token[0] = 0x0F; // Token is 00001111
+  token[0] = 0x0F;  // Token is 00001111
   *p = token[0];
   p += COAP_TOKEN_SIZE;
   packetSize += COAP_TOKEN_SIZE;
 
   // Make ticket option
-  *p = 0x01 << 4; // set option delta 0001
-  *p++ |= 0x01;   // set option length 0001
-  *p++ = ticket;  // set option value
-  packetSize += 2;
+  *p = 0x01 << 4;  // set option delta 0001
+  *p++ |= 0x02;    // set option length 0001
+  // set option value
+  *p++ = (ticket & 0x0000ff00) >> 8;
+  *p++ = (ticket & 0x000000ff);
+  packetSize += 3;
 
   // Make dummy option
-  *p = 0x01 << 4; // set option delta 0001
-  *p++ |= 0x01;   // set option length 0001
-  *p++ = 0xFC;    // set option value
+  *p = 0x01 << 4;  // set option delta 0001
+  *p++ |= 0x01;    // set option length 0001
+  *p++ = 0xFC;     // set option value
   packetSize += 2;
 
   // Payload marker
@@ -65,8 +65,7 @@ int sendCoapPacket(int sock, char *payload, int payload_size, char *dist_ip,
 
 // 16進数で表示
 #if 0
-  for (int i = 0; i < packetSize; i++)
-  {
+  for (int i = 0; i < packetSize; i++) {
     printf("%#x ", packet[i]);
   }
   printf("\n");
@@ -87,8 +86,7 @@ int sendCoapPacket(int sock, char *payload, int payload_size, char *dist_ip,
   return ret;
 };
 
-Message recvCoapPacket(int sock)
-{
+Message recvCoapPacket(int sock) {
   // 変数宣言
   uint8_t buf[BUFF_SIZE] = {0};
   struct sockaddr_in from;
@@ -104,16 +102,14 @@ Message recvCoapPacket(int sock)
   uint8_t payload[BUFF_SIZE] = {0};
   uint8_t *p = payload;
   int k = 0;
-  for (k = 0; buf[k] != 0xa; k++)
-  {
+  for (k = 0; buf[k] != 0xa; k++) {
     payload[k] = buf[k];
   }
   payload[k] = 0xa;
 
 // 16進数で表示
 #if 0
-  for (int j = 0; j < sizeof(payload); j++)
-  {
+  for (int j = 0; j < sizeof(payload); j++) {
     printf("%#x ", payload[j]);
   }
   printf("\n");
@@ -143,23 +139,24 @@ Message recvCoapPacket(int sock)
   msg.token = *p++;
 
   // parse option
-  for (int i = 0; i < OPTION_LENGTH; i++)
-  {
+  for (int i = 0; i < OPTION_LENGTH; i++) {
     msg.options[i].delta = (int)((0xf0 & *p) >> 4);
     msg.options[i].length = (int)(0x0f & *p++);
     msg.options[i].value = *p++;
+    for (int j = 1; j < msg.options[i].length; j++) {
+      msg.options[i].value = msg.options[i].value << 8;
+      msg.options[i].value |= *p++;
+    }
   }
 
   // ヘッダをスキップ
-  while (*p != 0xff)
-  {
+  while (*p != 0xff) {
     p++;
   }
   p++;
 
   // bodySizeの計算
-  for (uint8_t *i = p; *i != 0xa; i++)
-  {
+  for (uint8_t *i = p; *i != 0xa; i++) {
     bodySize++;
   }
 
@@ -176,28 +173,22 @@ Message recvCoapPacket(int sock)
   return msg;
 };
 
-uint8_t SHA(char *ip, char *secret)
-{
-  uint8_t hash = 0xf0;
+uint64_t SHA(char *ip, char *secret) {
+  uint64_t hash = 0x8966;
   return hash;
 }
 
-uint8_t generateTicket(char *ip)
-{
-  uint8_t ticket;
+uint64_t generateTicket(char *ip) {
+  uint64_t ticket;
   ticket = SHA(ip, SECRET);
   return ticket;
 };
 
-int validateTicket(uint8_t ticket, char *ip)
-{
-  uint8_t valid = SHA(ip, SECRET);
-  if (valid == ticket)
-  {
+int validateTicket(uint64_t ticket, char *ip) {
+  uint64_t valid = SHA(ip, SECRET);
+  if (valid == ticket) {
     return 0;
-  }
-  else
-  {
+  } else {
     return -1;
   }
 };
