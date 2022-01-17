@@ -42,11 +42,13 @@ int sendCoapPacket(int sock, char *payload, int payload_size, char *dist_ip,
 
   // Make ticket option
   *p = 0x01 << 4;  // set option delta 0001
-  *p++ |= 0x02;    // set option length 0001
+  *p++ |= 0x04;    // set option length 0001
   // set option value
+  *p++ = (ticket & 0xff000000) >> 24;
+  *p++ = (ticket & 0x00ff0000) >> 16;
   *p++ = (ticket & 0x0000ff00) >> 8;
   *p++ = (ticket & 0x000000ff);
-  packetSize += 3;
+  packetSize += 5;
 
   // Make dummy option
   *p = 0x01 << 4;  // set option delta 0001
@@ -83,6 +85,10 @@ int sendCoapPacket(int sock, char *payload, int payload_size, char *dist_ip,
   // send
   int ret = sendto(sock, packet, sizeof(packet), 0,
                    (struct sockaddr *)&dist_addr, sizeof(dist_addr));
+
+  if (ret == -1) {
+    perror("sendto: ");
+  }
   return ret;
 };
 
@@ -174,7 +180,25 @@ Message recvCoapPacket(int sock) {
 };
 
 uint64_t SHA(char *ip, char *secret) {
-  uint64_t hash = 0x8966;
+  // メッセージ生成
+  char message[25];
+  strcpy(message, ip);
+  strcat(message, secret);
+
+  unsigned int H[INIT_HASH_LENGTH];  //	結果格納配列を作成する
+
+  SHA256 sha256;  //	SHA256インスタンスを作成
+
+  //	パディング処理を実行
+  unsigned char **result = sha256.padding((char *)message);
+
+  // sha256.print_block(result); //	ブロックを表示
+
+  sha256.compute(result, H);  //	ハッシュ化を行う
+
+  uint64_t hash = H[0];
+  printf("%#x\n", hash);
+
   return hash;
 }
 

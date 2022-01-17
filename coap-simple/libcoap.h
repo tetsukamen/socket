@@ -9,7 +9,7 @@
 #include "SHA256.h"
 
 #define BUFF_SIZE 128
-#define SECRET "aaaaaaaaa"
+#define SECRET "abcdefghij"
 #define TICKET_SIZE 10
 #define IP_SIZE 15
 #define COAP_BUF_MAX_SIZE 128
