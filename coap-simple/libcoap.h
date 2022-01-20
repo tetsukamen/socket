@@ -42,11 +42,13 @@ struct Message {
   CoapOption options[OPTION_LENGTH];
 };
 
-int listenCoapPacketStart(char *ip, int port);
+int listenCoapPacketStart(const char *ip, int port);
 void listenCoapPacketEnd(int sock);
-int sendCoapPacket(int sock, char *payload, int payload_size, char *dist_ip,
-                   int dist_port, uint64_t ticket = 0);
+void createCoapPacket(const char *payload, int payload_size, uint8_t *packet,
+                      int *packetSize, uint64_t ticket = 0);
+int sendCoapPacket(int sock, uint8_t *packet, int packetSize,
+                   const char *dist_ip, int dist_port);
 Message recvCoapPacket(int sock);
-uint64_t SHA(char *ip, char *secret);
+uint64_t SHA(char *ip, const char *secret);
 uint64_t generateTicket(char *ip);
 int validateTicket(uint64_t ticket, char *ip);

@@ -9,24 +9,28 @@ int main() {
   // variables declaration
   struct Message msg;
   uint64_t ticket;
+  uint8_t packet[BUFF_SIZE];
+  int packetSize;
 
   // start listen
   int sock = listenCoapPacketStart(CLIENT_IP, CLIENT_PORT);
 
   // get ticket
-  sendCoapPacket(sock, "ticketRequest\n", sizeof("ticketRequest\n"), SERVER_IP,
-                 SERVER_PORT, 0x1);
+  createCoapPacket("ticketRequest\n", sizeof("ticketRequest\n"), packet,
+                   &packetSize, 0x1);
+  sendCoapPacket(sock, packet, packetSize, SERVER_IP, SERVER_PORT);
   printf("send ticket request\n\n");
   msg = recvCoapPacket(sock);
   ticket = msg.options[0].value;
   printf("---------------------------------------------\n");
-  printf("receve ticket: %#x\n\n", ticket);
+  printf("receve ticket: %#llx\n\n", ticket);
 
   // get data request 3 times
   for (int i = 0; i < 3; i++) {
     printf("send request\n\n");
-    sendCoapPacket(sock, "GET /data", sizeof("GET /data"), SERVER_IP,
-                   SERVER_PORT, ticket);
+    createCoapPacket("GET /data\n", sizeof("GET /data\n"), packet, &packetSize,
+                     ticket);
+    sendCoapPacket(sock, packet, packetSize, SERVER_IP, SERVER_PORT);
     msg = recvCoapPacket(sock);
     printf("---------------------------------------------\n");
     printf("receve packet: %s\n\n", msg.payload);

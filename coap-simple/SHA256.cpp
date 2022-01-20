@@ -57,7 +57,7 @@ unsigned char** SHA256::padding(char* input) {
     //	コピーする長さがブロックより短い場合
     if (intCopyLength < MESSAGE_BLOCK_SIZE) {
       //	ブロックをクリアする
-      memset(output[intI], NULL, sizeof(char) * MESSAGE_BLOCK_SIZE);
+      memset(output[intI], 0, sizeof(char) * MESSAGE_BLOCK_SIZE);
     }
 
     //	入力データをコピーする場合

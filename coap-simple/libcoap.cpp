@@ -1,29 +1,25 @@
 #include "libcoap.h"
 
-int listenCoapPacketStart(char *ip, int port) {
+int listenCoapPacketStart(const char *ip, int port) {
   int sock = socket(AF_INET, SOCK_DGRAM, 0);
   struct sockaddr_in addr;
   addr.sin_family = AF_INET;
   addr.sin_addr.s_addr = inet_addr(ip);
   addr.sin_port = htons(port);
-  bind(sock, (struct sockaddr *)&addr, sizeof(addr));
+  int ret = bind(sock, (const struct sockaddr *)&addr, sizeof(addr));
+  if (ret == -1) {
+    perror("bind: ");
+  }
   return sock;
 };
 
 void listenCoapPacketEnd(int sock) { close(sock); };
 
-int sendCoapPacket(int sock, char *payload, int payload_size, char *dist_ip,
-                   int dist_port, uint64_t ticket) {
-  // dist addr
-  struct sockaddr_in dist_addr;
-  memset(&dist_addr, 0, sizeof(dist_addr));
-  dist_addr.sin_family = AF_INET;
-  dist_addr.sin_addr.s_addr = inet_addr(dist_ip);
-  dist_addr.sin_port = htons(dist_port);
+void createCoapPacket(const char *payload, int payload_size, uint8_t *packet,
+                      int *packetSize, uint64_t ticket) {
   // create coap packet
-  uint8_t packet[BUFF_SIZE];
   uint8_t *p = packet;
-  uint16_t packetSize = 0;
+  uint16_t _packetSize = 0;
   uint8_t token[COAP_TOKEN_SIZE];
   // Coap header
   *p = 0x01 << 6;                  // Coap Version
@@ -32,13 +28,13 @@ int sendCoapPacket(int sock, char *payload, int payload_size, char *dist_ip,
   *p++ = 1;  // Code: 00000001(定義されてない適当な値)
   *p++ = 0;  // message id upper
   *p++ = 1;  // message id lower (全体で00000000 00000001)
-  packetSize += COAP_HEADER_SIZE;
+  _packetSize += COAP_HEADER_SIZE;
 
   // Coap token
   token[0] = 0x0F;  // Token is 00001111
   *p = token[0];
   p += COAP_TOKEN_SIZE;
-  packetSize += COAP_TOKEN_SIZE;
+  _packetSize += COAP_TOKEN_SIZE;
 
   // Make ticket option
   *p = 0x01 << 4;  // set option delta 0001
@@ -48,24 +44,36 @@ int sendCoapPacket(int sock, char *payload, int payload_size, char *dist_ip,
   *p++ = (ticket & 0x00ff0000) >> 16;
   *p++ = (ticket & 0x0000ff00) >> 8;
   *p++ = (ticket & 0x000000ff);
-  packetSize += 5;
+  _packetSize += 5;
 
   // Make dummy option
   *p = 0x01 << 4;  // set option delta 0001
   *p++ |= 0x01;    // set option length 0001
   *p++ = 0xFC;     // set option value
-  packetSize += 2;
+  _packetSize += 2;
 
   // Payload marker
   *p++ = 0xFF;
-  packetSize++;
+  _packetSize++;
 
   // Coap Payload
   memcpy(p, payload, payload_size);
   p += payload_size;
-  packetSize += payload_size;
+  _packetSize += payload_size;
 
-// 16進数で表示
+  *packetSize = _packetSize;
+}
+
+int sendCoapPacket(int sock, uint8_t *packet, int packetSize,
+                   const char *dist_ip, int dist_port) {
+  // dist addr
+  struct sockaddr_in dist_addr;
+  memset(&dist_addr, 0, sizeof(dist_addr));
+  dist_addr.sin_family = AF_INET;
+  dist_addr.sin_addr.s_addr = inet_addr(dist_ip);
+  dist_addr.sin_port = htons(dist_port);
+
+  // 16進数で表示
 #if 0
   for (int i = 0; i < packetSize; i++) {
     printf("%#x ", packet[i]);
@@ -83,8 +91,8 @@ int sendCoapPacket(int sock, char *payload, int payload_size, char *dist_ip,
 #endif
 
   // send
-  int ret = sendto(sock, packet, sizeof(packet), 0,
-                   (struct sockaddr *)&dist_addr, sizeof(dist_addr));
+  int ret = sendto(sock, packet, packetSize, 0, (struct sockaddr *)&dist_addr,
+                   sizeof(dist_addr));
 
   if (ret == -1) {
     perror("sendto: ");
@@ -94,15 +102,29 @@ int sendCoapPacket(int sock, char *payload, int payload_size, char *dist_ip,
 
 Message recvCoapPacket(int sock) {
   // 変数宣言
-  uint8_t buf[BUFF_SIZE] = {0};
+  uint8_t buf[BUFF_SIZE];
+  memset(buf, 0, BUFF_SIZE);
   struct sockaddr_in from;
+  memset(&from, 0, sizeof(from));
   socklen_t addrlen;
   addrlen = sizeof(from);
   size_t bodySize = 0;
   struct Message msg;
 
   // パケット受け取り
-  recvfrom(sock, buf, sizeof(buf), 0, (struct sockaddr *)&from, &addrlen);
+  int ret =
+      recvfrom(sock, buf, sizeof(buf), 0, (struct sockaddr *)&from, &addrlen);
+  // if (ret != -1) {
+  //   perror("recvfrom: ");
+  // }
+
+// 16進数で表示
+#if 0
+  for (int i = 0; i < sizeof(buf); i++) {
+    printf("%#x ", buf[i]);
+  }
+  printf("\n");
+#endif
 
   // ペイロードの取り出し
   uint8_t payload[BUFF_SIZE] = {0};
@@ -112,22 +134,6 @@ Message recvCoapPacket(int sock) {
     payload[k] = buf[k];
   }
   payload[k] = 0xa;
-
-// 16進数で表示
-#if 0
-  for (int j = 0; j < sizeof(payload); j++) {
-    printf("%#x ", payload[j]);
-  }
-  printf("\n");
-#endif
-// 文字で表示
-#if 0
-  for (int j = 0; j < sizeof(payload); j++) {
-    printf("%c    ", payload[j]);
-  }
-  printf("\n");
-
-#endif
 
   // CoAPパケットのパース
   // CoAP Version
@@ -179,7 +185,7 @@ Message recvCoapPacket(int sock) {
   return msg;
 };
 
-uint64_t SHA(char *ip, char *secret) {
+uint64_t SHA(char *ip, const char *secret) {
   // メッセージ生成
   char message[25];
   strcpy(message, ip);
@@ -197,7 +203,7 @@ uint64_t SHA(char *ip, char *secret) {
   sha256.compute(result, H);  //	ハッシュ化を行う
 
   uint64_t hash = H[0];
-  printf("%#x\n", hash);
+  printf("%#llx\n", hash);
 
   return hash;
 }

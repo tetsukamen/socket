@@ -1,8 +1,8 @@
 server: server.cpp
-	g++ -w server.cpp libcoap.cpp SHA256.cpp -o server.o
+	g++ server.cpp libcoap.cpp SHA256.cpp -o server.o -std=c++14
 
 client: client.cpp
-	g++ -w client.cpp libcoap.cpp SHA256.cpp -o client.o
+	g++ client.cpp libcoap.cpp SHA256.cpp -o client.o -std=c++14
 
 test: test.cpp
 	g++ -w test.cpp SHA256.cpp -o test.o

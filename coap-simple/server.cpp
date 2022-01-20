@@ -10,6 +10,8 @@ int main() {
   char data[BUFF_SIZE] = {0};
   char payload[BUFF_SIZE] = {0};
   size_t data_size;
+  uint8_t packet[BUFF_SIZE];
+  int packetSize;
 
   // start listen
   int sock = listenCoapPacketStart(SERVER_IP, SERVER_PORT);
@@ -20,12 +22,13 @@ int main() {
     msg = recvCoapPacket(sock);
     ticket = msg.options[0].value;
     printf("---------------------------------------------\n");
-    printf("receve: '%s' from %s %d\n", msg.payload, msg.ip, msg.port);
+    printf("receive: '%s' from %s %d\n", msg.payload, msg.ip, msg.port);
     printf("ver:%d type:%d TKL:%d code:%d token:%#x\n", msg.version, msg.type,
            msg.tokenLength, msg.code, msg.token);
     for (int i = 0; i < OPTION_LENGTH; i++) {
-      printf("option No.%d: delta:%d length:%d value:%#x\n", i,
-             msg.options[i].delta, msg.options[i].length, msg.options[i].value);
+      printf("option No.%d: delta:%d length:%d value:%#llx\n", i,
+             msg.options[i].delta, msg.options[i].length,
+             (unsigned long long)msg.options[i].value);
     }
     printf("\n");
 
@@ -41,8 +44,9 @@ int main() {
       // send ticket
       ticket = generateTicket(msg.ip);
       printf("Ticket has issued\n");
-      sendCoapPacket(sock, "Ticket has issued\n", sizeof("Ticket has issued\n"),
-                     msg.ip, msg.port, ticket);
+      createCoapPacket("Ticket has issued\n", sizeof("Ticket has issued\n"),
+                       packet, &packetSize, ticket);
+      sendCoapPacket(sock, packet, packetSize, msg.ip, msg.port);
     } else {
       printf("Got ticket\n");
       // send response
@@ -51,8 +55,8 @@ int main() {
         printf("request is valid\n");
         strcpy(data, "sensor-data-000112345\n");
         data_size = sizeof("sensor-data-000112345\n");
-
-        sendCoapPacket(sock, data, data_size, msg.ip, msg.port);
+        createCoapPacket(data, data_size, packet, &packetSize, ticket);
+        sendCoapPacket(sock, packet, packetSize, msg.ip, msg.port);
       } else {
         printf("ticket is invalid\n");
       }
