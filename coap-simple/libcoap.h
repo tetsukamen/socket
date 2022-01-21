@@ -21,13 +21,13 @@ struct CoapPacket {
   /* data */
 };
 
-struct CoapOption {
+typedef struct {
   int delta;
   int length;
   uint64_t value;
-};
+} CoapOption;
 
-struct Message {
+typedef struct {
   int version;
   int type;
   int tokenLength;
@@ -35,17 +35,17 @@ struct Message {
   uint8_t messageIdUpper;
   uint8_t messageIdLower;
   uint8_t token;
-  uint8_t payload[BUFF_SIZE] = {0};
+  uint8_t payload[BUFF_SIZE];
   char ip[IP_SIZE];
   int port;
   char ticket[TICKET_SIZE];
   CoapOption options[OPTION_LENGTH];
-};
+} Message;
 
 int listenCoapPacketStart(const char *ip, int port);
 void listenCoapPacketEnd(int sock);
 void createCoapPacket(const char *payload, int payload_size, uint8_t *packet,
-                      int *packetSize, uint64_t ticket = 0);
+                      int *packetSize, uint64_t ticket);
 int sendCoapPacket(int sock, uint8_t *packet, int packetSize,
                    const char *dist_ip, int dist_port);
 Message recvCoapPacket(int sock);

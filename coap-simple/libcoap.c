@@ -109,7 +109,7 @@ Message recvCoapPacket(int sock) {
   socklen_t addrlen;
   addrlen = sizeof(from);
   size_t bodySize = 0;
-  struct Message msg;
+  Message msg;
 
   // パケット受け取り
   int ret =
@@ -180,6 +180,7 @@ Message recvCoapPacket(int sock) {
 
   msg.port = ntohs(from.sin_port);
   strcpy(msg.ip, ip);
+  memset(msg.payload, 0, BUFF_SIZE);  // 初期化
   memcpy(msg.payload, p, bodySize);
 
   return msg;
@@ -193,7 +194,10 @@ uint64_t SHA(char *ip, const char *secret) {
 
   unsigned int H[INIT_HASH_LENGTH];  //	結果格納配列を作成する
 
-  SHA256 sha256;  //	SHA256インスタンスを作成
+  SHA256 sha256 = {
+      print_hex,  print_bin,  print_block_one, print_block,
+      print_hash, free_block, padding,         compute,
+  };  //	SHA256インスタンスを作成
 
   //	パディング処理を実行
   unsigned char **result = sha256.padding((char *)message);

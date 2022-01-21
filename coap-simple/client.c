@@ -7,7 +7,7 @@
 
 int main() {
   // variables declaration
-  struct Message msg;
+  Message msg;
   uint64_t ticket;
   uint8_t packet[BUFF_SIZE];
   int packetSize;

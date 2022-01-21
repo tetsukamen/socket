@@ -5,7 +5,7 @@
 
 int main() {
   // variables declaration
-  struct Message msg;
+  Message msg;
   uint64_t ticket;
   char data[BUFF_SIZE] = {0};
   char payload[BUFF_SIZE] = {0};

@@ -8,10 +8,24 @@
 
 #include "SHA256.h"
 
-#include <iomanip>
-#include <iostream>
+const unsigned int K[64] = {
+    0x428a2f98UL, 0x71374491UL, 0xb5c0fbcfUL, 0xe9b5dba5UL, 0x3956c25bUL,
+    0x59f111f1UL, 0x923f82a4UL, 0xab1c5ed5UL, 0xd807aa98UL, 0x12835b01UL,
+    0x243185beUL, 0x550c7dc3UL, 0x72be5d74UL, 0x80deb1feUL, 0x9bdc06a7UL,
+    0xc19bf174UL, 0xe49b69c1UL, 0xefbe4786UL, 0x0fc19dc6UL, 0x240ca1ccUL,
+    0x2de92c6fUL, 0x4a7484aaUL, 0x5cb0a9dcUL, 0x76f988daUL, 0x983e5152UL,
+    0xa831c66dUL, 0xb00327c8UL, 0xbf597fc7UL, 0xc6e00bf3UL, 0xd5a79147UL,
+    0x06ca6351UL, 0x14292967UL, 0x27b70a85UL, 0x2e1b2138UL, 0x4d2c6dfcUL,
+    0x53380d13UL, 0x650a7354UL, 0x766a0abbUL, 0x81c2c92eUL, 0x92722c85UL,
+    0xa2bfe8a1UL, 0xa81a664bUL, 0xc24b8b70UL, 0xc76c51a3UL, 0xd192e819UL,
+    0xd6990624UL, 0xf40e3585UL, 0x106aa070UL, 0x19a4c116UL, 0x1e376c08UL,
+    0x2748774cUL, 0x34b0bcb5UL, 0x391c0cb3UL, 0x4ed8aa4aUL, 0x5b9cca4fUL,
+    0x682e6ff3UL, 0x748f82eeUL, 0x78a5636fUL, 0x84c87814UL, 0x8cc70208UL,
+    0x90befffaUL, 0xa4506cebUL, 0xbef9a3f7UL, 0xc67178f2UL};
 
-#define MESSAGE_BLOCK_SIZE 64
+const unsigned int H0[] = {0x6a09e667UL, 0xbb67ae85UL, 0x3c6ef372UL,
+                           0xa54ff53aUL, 0x510e527fUL, 0x9b05688cUL,
+                           0x1f83d9abUL, 0x5be0cd19UL};
 
 /**
         パディング処理
@@ -22,7 +36,7 @@
         引数：入力データ
         戻り値：ブロック配列
 */
-unsigned char** SHA256::padding(char* input) {
+unsigned char** padding(char* input) {
   //	入力データの長さを取得する
   int intLength = strlen(input);
 
@@ -101,56 +115,54 @@ unsigned char** SHA256::padding(char* input) {
   //	ブロック配列の最後にNULLを入れる
   output[intBlock] = NULL;
 
-  //	std::cout << std::endl;
+  //	printf("\n");
 
   return output;
 }
 
-void SHA256::print_block_one(unsigned char* block) {
+void print_block_one(unsigned char* block) {
   for (int intJ = 0; intJ < MESSAGE_BLOCK_SIZE; intJ++) {
-    std::cout << std::hex << std::setw(2) << std::setfill('0')
-              << (unsigned short int)(block[intJ]);
+    printf("%02x", block[intJ]);
 
     if (intJ % 4 == 3) {
-      std::cout << " ";
+      printf(" ");
     }
     if (intJ % 32 == 31) {
-      std::cout << std::endl;
+      printf("\n");
     }
   }
-  std::cout << std::dec;
 }
 
-void SHA256::print_block(unsigned char** block) {
+void print_block(unsigned char** block) {
   int intI = 0;
   while (block[intI] != NULL) {
-    std::cout << intI << ":" << std::endl;
+    printf("%d:\n", intI);
 
     print_block_one(block[intI]);
 
     for (int intJ = 0; intJ < MESSAGE_BLOCK_SIZE; intJ++) {
       if (block[intI][intJ] >= 0x20 && block[intI][intJ] < 0x80) {
-        std::cout << (block[intI][intJ]) << " ";
+        printf("%c ", block[intI][intJ]);
       } else {
-        std::cout << ". ";
+        printf(". ");
       }
 
       if (intJ % 4 == 3) {
-        std::cout << " ";
+        printf(" ");
       }
       if (intJ % 32 == 31) {
-        std::cout << std::endl;
+        printf("\n");
       }
     }
 
-    std::cout << std::endl;
-    std::cout << std::endl;
+    printf("\n");
+    printf("\n");
 
     intI++;
   }
 }
 
-void SHA256::free_block(unsigned char** block) {
+void free_block(unsigned char** block) {
   int intI = 0;
   while (block[intI] != NULL) {
     free(block[intI]);
@@ -159,50 +171,46 @@ void SHA256::free_block(unsigned char** block) {
   free(block);
 }
 
-void SHA256::print_hash(unsigned int* H) {
+void print_hash(unsigned int* H) {
   for (int intI = 0; intI < INIT_HASH_LENGTH; intI++) {
     print_hex(H[intI]);
-    std::cout << " ";
+    printf(" ");
   }
 
-  std::cout << std::endl;
+  printf("\n");
 }
 
-void SHA256::print_hex(unsigned int i) {
+void print_hex(unsigned int i) {
   unsigned int h;
 
   h = (i & 0xff000000) >> 24;
-  std::cout << std::hex << std::setw(2) << std::setfill('0')
-            << (unsigned short int)(h);
+  printf("%02x", h);
 
   h = (i & 0x00ff0000) >> 16;
-  std::cout << std::hex << std::setw(2) << std::setfill('0')
-            << (unsigned short int)(h);
+  printf("%02x", h);
 
   h = (i & 0x0000ff00) >> 8;
-  std::cout << std::hex << std::setw(2) << std::setfill('0')
-            << (unsigned short int)(h);
+  printf("%02x", h);
 
   h = (i & 0x000000ff);
-  std::cout << std::hex << std::setw(2) << std::setfill('0')
-            << (unsigned short int)(h);
+  printf("%02x", h);
 }
 
-void SHA256::print_bin(unsigned int i) {
+void print_bin(unsigned int i) {
   unsigned int h;
 
   h = i;
   for (int intI = 0; intI < 32; intI++) {
     if ((h & 0x80000000) == 0x00000000UL) {
-      std::cout << "0";
+      printf("0");
     } else {
-      std::cout << "1";
+      printf("1");
     }
     h = h << 1;
   }
 }
 
-void SHA256::compute(unsigned char** block, unsigned int* H) {
+void compute(unsigned char** block, unsigned int* H) {
   //	メッセージの個数をカウントする
   int N = 0;
   while (block[N] != NULL) {
