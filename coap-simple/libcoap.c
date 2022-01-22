@@ -91,8 +91,8 @@ int sendCoapPacket(int sock, uint8_t *packet, int packetSize,
 #endif
 
   // send
-  int ret = sendto(sock, packet, packetSize, 0, (struct sockaddr *)&dist_addr,
-                   sizeof(dist_addr));
+  int ret = (int)sendto(sock, packet, packetSize, 0,
+                        (struct sockaddr *)&dist_addr, sizeof(dist_addr));
 
   if (ret == -1) {
     perror("sendto: ");
@@ -112,8 +112,7 @@ Message recvCoapPacket(int sock) {
   Message msg;
 
   // パケット受け取り
-  int ret =
-      recvfrom(sock, buf, sizeof(buf), 0, (struct sockaddr *)&from, &addrlen);
+  recvfrom(sock, buf, sizeof(buf), 0, (struct sockaddr *)&from, &addrlen);
   // if (ret != -1) {
   //   perror("recvfrom: ");
   // }

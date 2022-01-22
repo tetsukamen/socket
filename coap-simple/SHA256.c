@@ -38,7 +38,7 @@ const unsigned int H0[] = {0x6a09e667UL, 0xbb67ae85UL, 0x3c6ef372UL,
 */
 unsigned char** padding(char* input) {
   //	入力データの長さを取得する
-  int intLength = strlen(input);
+  int intLength = (int)strlen(input);
 
   //	振り分けるブロックの個数を計算する
   //	(MESSAGE_BLOCK_SIZE-1)は切り上げのために必要
@@ -225,7 +225,7 @@ void compute(unsigned char** block, unsigned int* H) {
   //	メッセージ数分ループする
   for (int i = 0; i < N; i++) {
     //	変数定義
-    unsigned int a, b, c, d, e, f, g, h, s0, s1, T1, T2;
+    unsigned int a, b, c, d, e, f, g, h, T1, T2;
 
     //	1. Prepare the message schedule, { Wt }:
     char* msg = (char*)block[i];
