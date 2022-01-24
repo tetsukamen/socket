@@ -206,7 +206,7 @@ uint64_t SHA(char *ip, const char *secret) {
   sha256.compute(result, H);  //	ハッシュ化を行う
 
   uint64_t hash = H[0];
-  printf("%#llx\n", hash);
+  // printf("%#llx\n", hash);
 
   return hash;
 }

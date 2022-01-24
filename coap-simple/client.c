@@ -1,3 +1,6 @@
+#include <sys/resource.h>
+#include <time.h>
+
 #include "libcoap.h"
 
 #define SERVER_IP "127.0.0.1"
@@ -11,6 +14,7 @@ int main() {
   uint64_t ticket;
   uint8_t packet[BUFF_SIZE];
   int packetSize;
+  struct rusage usage;
 
   // start listen
   int sock = listenCoapPacketStart(CLIENT_IP, CLIENT_PORT);
@@ -26,16 +30,23 @@ int main() {
   printf("receve ticket: %#llx\n\n", ticket);
 
   // get data request 3 times
-  for (int i = 0; i < 3; i++) {
-    printf("send request\n\n");
+  for (int i = 0; i < 100; i++) {
+    // printf("send request\n\n");
     createCoapPacket("GET /data\n", sizeof("GET /data\n"), packet, &packetSize,
                      ticket);
     sendCoapPacket(sock, packet, packetSize, SERVER_IP, SERVER_PORT);
     msg = recvCoapPacket(sock);
-    printf("---------------------------------------------\n");
-    printf("receve packet: %s\n\n", msg.payload);
+    // printf("---------------------------------------------\n");
+    // printf("receve packet: %s\n\n", msg.payload);
   }
   // end listen
   listenCoapPacketEnd(sock);
+
+  long cpu_time = clock();
+  printf("cpu time: %ld\n", cpu_time);
+
+  getrusage(RUSAGE_SELF, &usage);
+  printf("maxrss: %ld\n", usage.ru_maxrss);
+
   return 0;
 }
