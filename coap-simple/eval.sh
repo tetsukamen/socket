@@ -2,10 +2,10 @@
 
 # 書き込みファイルのリセット
 : > eval_cpu.txt
-: > eval_maxrss.txt
+: > eval_vmhwm.txt
 
 # 100回計測して記録
-for i in `seq 10`
+for i in `seq 100`
 do
   ./server.o &
   sleep 0.1
@@ -32,7 +32,7 @@ while read value
 do
   maxrss_sum=$(($maxrss_sum+$value))
   maxrss_count=$(($maxrss_count+1))
-done < ./eval_maxrss.txt
+done < ./eval_vmhwm.txt
 echo maxrss_avg: $(($maxrss_sum/$maxrss_count))
 
 

@@ -1,8 +1,8 @@
 server: server.c
-	gcc server.c libcoap.c SHA256.c -o server.o
+	gcc -static server.c libcoap.c SHA256.c -o server.o
 
 client: client.c
-	gcc client.c libcoap.c SHA256.c -o client.o
+	gcc -static client.c libcoap.c SHA256.c -o client.o
 
 test: test.c
 	gcc test.c -o test.o

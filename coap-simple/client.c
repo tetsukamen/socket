@@ -27,7 +27,7 @@ int main() {
   msg = recvCoapPacket(sock);
   ticket = msg.options[0].value;
   printf("---------------------------------------------\n");
-  printf("receve ticket: %#llx\n\n", ticket);
+  printf("receve ticket: %#lx\n\n", ticket);
 
   // get data request 3 times
   // for (int i = 0; i < 100; i++) {
