@@ -51,8 +51,8 @@ int main() {
       // send ticket
       ticket = generateTicket(msg.ip);
       printf("Ticket has issued\n");
-      createCoapPacket("Ticket has issued\n", sizeof("Ticket has issued\n"),
-                       packet, &packetSize, ticket);
+      createCoapPacket("Issued\n", sizeof("Ticket has issued\n"), packet,
+                       &packetSize, ticket);
       sendCoapPacket(sock, packet, packetSize, msg.ip, msg.port);
     } else {
       // printf("Got ticket\n");

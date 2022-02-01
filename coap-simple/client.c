@@ -20,7 +20,7 @@ int main() {
   int sock = listenCoapPacketStart(CLIENT_IP, CLIENT_PORT);
 
   // get ticket
-  createCoapPacket("ticketRequest\n", sizeof("ticketRequest\n"), packet,
+  createCoapPacket("ticketRequest pp\n", sizeof("ticketRequest\n"), packet,
                    &packetSize, 0x1);
   sendCoapPacket(sock, packet, packetSize, SERVER_IP, SERVER_PORT);
   printf("send ticket request\n\n");
