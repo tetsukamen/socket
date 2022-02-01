@@ -20,7 +20,7 @@ int main() {
   int sock = listenCoapPacketStart(CLIENT_IP, CLIENT_PORT);
 
   // get ticket
-  createCoapPacket("ticketRequest pp\n", sizeof("ticketRequest\n"), packet,
+  createCoapPacket("ticketRequest pp\n", sizeof("ticketRequest pp\n"), packet,
                    &packetSize, 0x1);
   sendCoapPacket(sock, packet, packetSize, SERVER_IP, SERVER_PORT);
   printf("send ticket request\n\n");
@@ -30,15 +30,16 @@ int main() {
   printf("receve ticket: %#llx\n\n", ticket);
 
   // get data request 3 times
-  for (int i = 0; i < 100; i++) {
-    // printf("send request\n\n");
-    createCoapPacket("GET /data\n", sizeof("GET /data\n"), packet, &packetSize,
-                     ticket);
-    sendCoapPacket(sock, packet, packetSize, SERVER_IP, SERVER_PORT);
-    msg = recvCoapPacket(sock);
-    // printf("---------------------------------------------\n");
-    // printf("receve packet: %s\n\n", msg.payload);
-  }
+  // for (int i = 0; i < 100; i++) {
+  //   // printf("send request\n\n");
+  //   createCoapPacket("GET /data\n", sizeof("GET /data\n"), packet,
+  //   &packetSize,
+  //                    ticket);
+  //   sendCoapPacket(sock, packet, packetSize, SERVER_IP, SERVER_PORT);
+  //   msg = recvCoapPacket(sock);
+  //   // printf("---------------------------------------------\n");
+  //   // printf("receve packet: %s\n\n", msg.payload);
+  // }
   // end listen
   listenCoapPacketEnd(sock);
 
