@@ -1,11 +1,14 @@
 #!/bin/sh
+# wolfSSLのハンドシェイク時のCPU時間と最大メモリ使用量を計測
+
+N=100 # 繰り返し数
 
 # 書き込みファイルのリセット
 : > eval_cpu.txt
 : > eval_vmhwm.txt
 
 # 100回計測して記録
-for i in `seq 100`
+for i in `seq $N`
 do
   ./server.o &
   sleep 0.1
@@ -16,6 +19,7 @@ done
 # 平均の計算
 echo "\n"
 echo "=========結果========="
+echo "繰り返し数":$N
 # cpu
 cpu_sum=0
 cpu_count=0

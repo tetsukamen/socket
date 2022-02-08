@@ -12,6 +12,7 @@
 
 int main() {
   // variables declaration
+  int N = 25;  // 繰り返し回数
   Message msg;
   uint64_t ticket;
   uint8_t packet[BUFF_SIZE];
@@ -34,7 +35,7 @@ int main() {
 #endif
 
   // get data request 3 times
-  for (int i = 0; i < 10; i++) {
+  for (int i = 0; i < N; i++) {
     // printf("send request\n\n");
     createCoapPacket("GET /data\n", sizeof("GET /data\n"), packet, &packetSize,
                      ticket);
@@ -46,11 +47,11 @@ int main() {
   // end listen
   listenCoapPacketEnd(sock);
 
-  long cpu_time = clock();
-  printf("cpu time: %ld\n", cpu_time);
+  // long cpu_time = clock();
+  // printf("cpu time: %ld\n", cpu_time);
 
-  getrusage(RUSAGE_SELF, &usage);
-  printf("maxrss: %ld\n", usage.ru_maxrss);
+  // getrusage(RUSAGE_SELF, &usage);
+  // printf("maxrss: %ld\n", usage.ru_maxrss);
 
   return 0;
 }

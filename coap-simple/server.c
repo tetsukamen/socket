@@ -10,9 +10,10 @@
 #define PROPOSED
 
 int main() {
-  printf("PID: %d\n", getpid());
+  // printf("PID: %d\n", getpid());
 
   // variables declaration
+  int N = 25;  // 繰り返し回数
   Message msg;
   uint64_t ticket;
   char data[BUFF_SIZE] = {0};
@@ -30,12 +31,18 @@ int main() {
       "555555555566666666667777777777888888888899999999990000000000111111111122"
       "222222223333333333444444444455555555556666666666777777777788888888889999"
       "\n";
+  FILE *fp;
+  long cpu_time;
 
   // start listen
   int sock = listenCoapPacketStart(SERVER_IP, SERVER_PORT);
   printf("Listenting...\n");
 
-  for (int i = 0; i < 11; i++) {
+#ifdef PROPOSED
+  N = N + 1;
+#endif
+
+  for (int i = 0; i < N; i++) {
     // receve packet
     msg = recvCoapPacket(sock);
     ticket = msg.options[0].value;
@@ -63,7 +70,7 @@ int main() {
     if (ticket == 0x1) {
       // send ticket
       ticket = generateTicket(msg.ip);
-      printf("Ticket has issued\n");
+      // printf("Ticket has issued\n");
       createCoapPacket("Issued\n", sizeof("Issued\n"), packet, &packetSize,
                        ticket);
       sendCoapPacket(sock, packet, packetSize, msg.ip, msg.port);
@@ -88,10 +95,9 @@ int main() {
   }  // end for loop
 
   // 計測
-  FILE *fp;
-
+  printf("繰り返し回数:%d\n", N);
   // cpu時間
-  long cpu_time = clock();
+  cpu_time = clock();
   printf("cpu time: %ld\n", cpu_time);
   fp = fopen("eval_cpu.txt", "a");
   fprintf(fp, "%ld\n", cpu_time);
@@ -111,7 +117,7 @@ int main() {
     //具体的な数値を取得する場合は、sscanf等で読み出し
     sscanf(output, "%s %d", str, &vmhwm);
   }
-  printf("vmhwm: %d\n", vmhwm);
+  // printf("vmhwm: %d\n", vmhwm);
   fp = fopen("eval_vmhwm.txt", "a");
   fprintf(fp, "%d\n", vmhwm);
   fclose(fp);
