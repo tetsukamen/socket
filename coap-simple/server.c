@@ -7,6 +7,8 @@
 #define SERVER_IP "127.0.0.1"
 #define SERVER_PORT 8080
 
+#define PROPOSED
+
 int main() {
   printf("PID: %d\n", getpid());
 
@@ -19,58 +21,71 @@ int main() {
   uint8_t packet[BUFF_SIZE];
   int packetSize;
   struct rusage usage;
+  char sendData[BUFF_SIZE] =
+      "sensordata00000000001111111111222222222233333333334444444444555555555566"
+      "666666667777777777888888888899999999990000000000111111111122222222223333"
+      "333333444444444455555555556666666666777777777788888888889999999999000000"
+      "000011111111112222222222333333333344444444445555555555666666666677777777"
+      "778888888888999999999900000000001111111111222222222233333333334444444444"
+      "555555555566666666667777777777888888888899999999990000000000111111111122"
+      "222222223333333333444444444455555555556666666666777777777788888888889999"
+      "\n";
 
   // start listen
   int sock = listenCoapPacketStart(SERVER_IP, SERVER_PORT);
   printf("Listenting...\n");
 
-  // for (int i = 0; i < 101; i++) {
-  // receve packet
-  msg = recvCoapPacket(sock);
-  ticket = msg.options[0].value;
-  // printf("---------------------------------------------\n");
-  // printf("receive: '%s' from %s %d\n", msg.payload, msg.ip, msg.port);
-  // printf("ver:%d type:%d TKL:%d code:%d token:%#x\n", msg.version,
-  // msg.type,
-  //        msg.tokenLength, msg.code, msg.token);
-  // for (int i = 0; i < OPTION_LENGTH; i++) {
-  //   printf("option No.%d: delta:%d length:%d value:%#llx\n", i,
-  //          msg.options[i].delta, msg.options[i].length,
-  //          (unsigned long long)msg.options[i].value);
-  // }
-  // printf("\n");
+  for (int i = 0; i < 11; i++) {
+    // receve packet
+    msg = recvCoapPacket(sock);
+    ticket = msg.options[0].value;
+    // printf("---------------------------------------------\n");
+    // printf("receive: '%s' from %s %d\n", msg.payload, msg.ip, msg.port);
+    // printf("ver:%d type:%d TKL:%d code:%d token:%#x\n", msg.version,
+    // msg.type,
+    //        msg.tokenLength, msg.code, msg.token);
+    // for (int i = 0; i < OPTION_LENGTH; i++) {
+    //   printf("option No.%d: delta:%d length:%d value:%#llx\n", i,
+    //          msg.options[i].delta, msg.options[i].length,
+    //          (unsigned long long)msg.options[i].value);
+    // }
+    // printf("\n");
 
 // payloadを16進数で表示
 #if 0
-        for (int i = 0; i < sizeof(payload); i++) {
-          printf("%#x ", payload[i]);
-        }
-        printf("\n");
+          for (int i = 0; i < sizeof(payload); i++) {
+            printf("%#x ", payload[i]);
+          }
+          printf("\n");
 #endif
 
-  if (ticket == 0x1) {
-    // send ticket
-    ticket = generateTicket(msg.ip);
-    printf("Ticket has issued\n");
-    createCoapPacket("Issued\n", sizeof("Issued\n"), packet, &packetSize,
-                     ticket);
-    sendCoapPacket(sock, packet, packetSize, msg.ip, msg.port);
-  } else {
-    // printf("Got ticket\n");
-    // send response
-    int isValid = validateTicket(ticket, msg.ip);
-    if (isValid == 0) {
-      // printf("request is valid\n");
-      strcpy(data, "sensor-data-000112345\n");
-      data_size = sizeof("sensor-data-000112345\n");
-      createCoapPacket(data, data_size, packet, &packetSize, ticket);
+#ifdef PROPOSED
+    if (ticket == 0x1) {
+      // send ticket
+      ticket = generateTicket(msg.ip);
+      printf("Ticket has issued\n");
+      createCoapPacket("Issued\n", sizeof("Issued\n"), packet, &packetSize,
+                       ticket);
       sendCoapPacket(sock, packet, packetSize, msg.ip, msg.port);
     } else {
-      printf("ticket is invalid\n");
+      // printf("Got ticket\n");
+      // send response
+      int isValid = validateTicket(ticket, msg.ip);
+      if (isValid == 0) {
+#endif
+        // printf("request is valid\n");
+        strcpy(data, sendData);
+        data_size = sizeof(sendData);
+        createCoapPacket(data, data_size, packet, &packetSize, ticket);
+        sendCoapPacket(sock, packet, packetSize, msg.ip, msg.port);
+#ifdef PROPOSED
+      } else {
+        printf("ticket is invalid\n");
+      }
     }
-  }
-  // printf("\n");
-  // }
+#endif
+    // printf("\n");
+  }  // end for loop
 
   // 計測
   FILE *fp;
@@ -94,9 +109,9 @@ int main() {
   }
   while (fgets(output, 128, fp) != NULL) {
     //具体的な数値を取得する場合は、sscanf等で読み出し
-    sscanf(output,"%s %d",str,&vmhwm);
+    sscanf(output, "%s %d", str, &vmhwm);
   }
-  printf("vmhwm: %d\n",vmhwm);
+  printf("vmhwm: %d\n", vmhwm);
   fp = fopen("eval_vmhwm.txt", "a");
   fprintf(fp, "%d\n", vmhwm);
   fclose(fp);
