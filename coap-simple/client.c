@@ -8,13 +8,13 @@
 #define CLIENT_IP "127.0.0.1"
 #define CLIENT_PORT 8081
 
-#define PROPOSED
+// #define PROPOSED
 
 int main() {
   // variables declaration
-  int N = 25;  // 繰り返し回数
+  int N = 1000;  // 繰り返し回数
   Message msg;
-  uint64_t ticket;
+  uint64_t ticket = 0;
   uint8_t packet[BUFF_SIZE];
   int packetSize;
   struct rusage usage;

@@ -7,13 +7,13 @@
 #define SERVER_IP "127.0.0.1"
 #define SERVER_PORT 8080
 
-#define PROPOSED
+// #define PROPOSED
 
 int main() {
   // printf("PID: %d\n", getpid());
 
   // variables declaration
-  int N = 25;  // 繰り返し回数
+  int N = 1000;  // 繰り返し回数
   Message msg;
   uint64_t ticket;
   char data[BUFF_SIZE] = {0};

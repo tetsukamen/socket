@@ -37,14 +37,16 @@ void createCoapPacket(const char *payload, int payload_size, uint8_t *packet,
   _packetSize += COAP_TOKEN_SIZE;
 
   // Make ticket option
-  *p = 0x01 << 4;  // set option delta 0001
-  *p++ |= 0x04;    // set option length 0001
-  // set option value
-  *p++ = (ticket & 0xff000000) >> 24;
-  *p++ = (ticket & 0x00ff0000) >> 16;
-  *p++ = (ticket & 0x0000ff00) >> 8;
-  *p++ = (ticket & 0x000000ff);
-  _packetSize += 5;
+  if (ticket != 0) {
+    *p = 0x01 << 4;  // set option delta 0001
+    *p++ |= 0x04;    // set option length 0001
+    // set option value
+    *p++ = (ticket & 0xff000000) >> 24;
+    *p++ = (ticket & 0x00ff0000) >> 16;
+    *p++ = (ticket & 0x0000ff00) >> 8;
+    *p++ = (ticket & 0x000000ff);
+    _packetSize += 5;
+  }
 
   // Make dummy option
   *p = 0x01 << 4;  // set option delta 0001
